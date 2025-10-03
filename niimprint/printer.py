@@ -111,7 +111,8 @@ class PrinterClient:
         for pkt in self._encode_image(image):
             self._send(pkt)
         self.end_page_print()
-        time.sleep(0.3)  # FIXME: Check get_print_status()
+        while not self.get_print_status()["idle"]:
+            time.sleep(0.1)
         while not self.end_print():
             time.sleep(0.1)
 
@@ -274,7 +275,7 @@ class PrinterClient:
 
     def set_dimension(self, w, h):
         packet = self._transceive(
-            RequestCodeEnum.SET_DIMENSION, struct.pack(">HH", w, h)
+            RequestCodeEnum.SET_DIMENSION, struct.pack(">HHH", w, h, 1)
         )
         return bool(packet.data[0])
 
@@ -284,5 +285,7 @@ class PrinterClient:
 
     def get_print_status(self):
         packet = self._transceive(RequestCodeEnum.GET_PRINT_STATUS, b"\x01", 16)
-        page, progress1, progress2 = struct.unpack(">HBB", packet.data)
-        return {"page": page, "progress1": progress1, "progress2": progress2}
+        fields = struct.unpack(">BBBBBBBBBB", packet.data)
+        idle, progress1, progress2 = fields[1], fields[2], fields[3]
+        assert 0 <= idle <= 1, "Unexpected value received for idle"
+        return { "idle": bool(idle), "progress1": progress1, "progress2": progress2 }

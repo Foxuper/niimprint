@@ -10,6 +10,14 @@
 - Integrated [pre-commit](https://pre-commit.com/) and [ruff](https://docs.astral.sh/ruff/), re-formatted all files
 - Miscellaneous refactoring / file renaming / etc.
 
+## Fork notes (B1-specific)
+  - Fix: Blank labels on B1
+    - Adjusted label dimension handling around `niimprint/printer.py` line `278` (inside `set_dimension(...)`). This resolved cases where the B1 was ejecting blank labels.
+  - Fix: Images printing partially
+    - Updated `PrinterClient.get_print_status()` parsing and the wait loop in `niimprint/printer.py` lines `114–115` within `PrinterClient.print_image()`. The loop now waits for `idle` state before calling `end_print()` instead of waiting for a fixed amount of time, preventing partial prints.
+  - Scope / disclaimer
+    - These changes were only tested on the Niimbot B1 (firmware 5.22). No intention to test or support other models as it works for my personal use case.
+
 ## Installation
 
 Recommended method is to use [poetry](https://python-poetry.org) and install with `poetry install`. However `requirements.txt` is also provided for convenience. Project is tested on Python 3.11, but should work on other versions.
